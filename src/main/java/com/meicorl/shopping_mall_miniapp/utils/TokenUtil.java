@@ -3,18 +3,15 @@ package com.meicorl.shopping_mall_miniapp.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.meicorl.shopping_mall_miniapp.common.Token;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Objects;
 import java.util.Random;
 
 public class TokenUtil {
     private static final Logger logger = LoggerFactory.getLogger(TokenUtil.class);
-//
-//    @Value("${token.secret}")
-    private static String password = "S9LYUl73fquXIRCosFHyVKY9HUKAlT7O";
 
     /**
      * 根据用户身份生成token
@@ -29,19 +26,14 @@ public class TokenUtil {
      * @return token有效返回用户true, 否则返回false
      */
     public static boolean checkToken(String tokenStr, Token token) {
-        if(token == null )
-            return false;
         try {
             String decodedToken = encodeString(new String(Objects.requireNonNull(CommonUtil.parseHexStr2Byte(tokenStr))));
-            logger.info("raw token: {}", decodedToken);
             JSONObject jsonToken = JSONObject.parseObject(decodedToken);
             token.setOpenid(jsonToken.getString("openid"));
             token.setSession_key(jsonToken.getString("session_key"));
-            System.out.println(JSON.toJSONString(token));
-            return token.getOpenid() != null && token.getSession_key() != null;
+            return !StringUtils.isEmpty(token.getOpenid()) && !StringUtils.isEmpty(token.getSession_key());
         }catch (Exception e) {
             // token 无法解析
-            e.printStackTrace();
             logger.error("token解析失败: " + e.getMessage());
             return false;
         }
@@ -68,6 +60,7 @@ public class TokenUtil {
      * @return 加密字符串
      */
     private static String encodeString(String str) {
+        String password = "S9LYUl73fquXIRCosFHyVKY9HUKAlT7O";
         char[] pwd = password.toCharArray();
         int pwdLen = pwd.length;
 
@@ -80,8 +73,8 @@ public class TokenUtil {
 
     public static void main(String[] args) {
         JSONObject jo = new JSONObject();
-        jo.put("openid", "wx12312");
-        jo.put("session_key", "dadasdasdqweqwd");
+        jo.put("openid", "caomei");
+        jo.put("session_key", "test");
 
         String token = generateToken(jo);
         System.out.println(token);

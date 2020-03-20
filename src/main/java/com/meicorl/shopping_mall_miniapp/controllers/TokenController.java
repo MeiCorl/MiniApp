@@ -1,6 +1,7 @@
 package com.meicorl.shopping_mall_miniapp.controllers;
 
 import com.alibaba.fastjson.JSONObject;
+import com.meicorl.shopping_mall_miniapp.annotations.PassToken;
 import com.meicorl.shopping_mall_miniapp.common.Response;
 import com.meicorl.shopping_mall_miniapp.common.TokenRequestModel;
 import com.meicorl.shopping_mall_miniapp.services.WechatService;
@@ -20,8 +21,9 @@ public class TokenController {
 
     @ApiOperation(value = "获取用户登录token")
     @PostMapping(value = "/getToken")
+    @PassToken
     public Response getToken(@RequestBody TokenRequestModel request) {
-        JSONObject token = wechatService.getWxUserInfo(request.getCode(), request.getNickName(),  request.getHeadImg(),
+        JSONObject token = wechatService.getWxUserInfo(request.getCode(), request.getNickName(), request.getHeadImg(),
                 request.getSex(), request.getPhoneNumber());
         return Response.ok(token);
     }

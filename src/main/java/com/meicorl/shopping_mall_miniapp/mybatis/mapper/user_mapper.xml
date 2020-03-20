@@ -7,7 +7,7 @@
         insert into t_user_info(openid, phone, nick_name, sex, head_img, create_time)
         values (#{openid}, #{phone}, #{nick_name}, #{sex}, #{head_img}, #{create_time})
     </insert>
-    <select id="getUserByOpenId" resultType="com.meicorl.shopping_mall_miniapp.mybatis.pojo.User">
+    <select id="getUserByOpenId" resultType="User">
         select * from t_user_info
         where openid = #{openid}
     </select>
