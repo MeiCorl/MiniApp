@@ -4,6 +4,9 @@ import com.meicorl.shopping_mall_miniapp.annotations.PassToken;
 import com.meicorl.shopping_mall_miniapp.common.Token;
 import com.meicorl.shopping_mall_miniapp.utils.SessionUtil;
 import com.meicorl.shopping_mall_miniapp.utils.TokenUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -13,13 +16,17 @@ import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 
 public class AuthenticationInterceptor implements HandlerInterceptor {
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationInterceptor.class);
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object object) throws Exception {
         String strToken = request.getHeader("x-token"); // 从 http 请求头中取出 token
+        if (StringUtils.isEmpty(strToken))
+            return false;
+
         // 如果不是映射到方法直接通过
-        if (!(object instanceof HandlerMethod)) {
+        if (!(object instanceof HandlerMethod))
             return true;
-        }
 
         HandlerMethod handlerMethod = (HandlerMethod) object;
         Method method = handlerMethod.getMethod();
@@ -36,6 +43,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         }
         //todo 将当前登录用户token存放在全局ThreadLocal对象中
         SessionUtil.setCurrentToken(token);
+        logger.info("token验证成功!");
         return true;
     }
 

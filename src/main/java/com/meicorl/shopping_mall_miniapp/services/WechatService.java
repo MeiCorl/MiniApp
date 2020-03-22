@@ -9,7 +9,7 @@ import com.meicorl.shopping_mall_miniapp.utils.TokenUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -27,7 +27,7 @@ public class WechatService {
     private ConcurrentHashMap<String, String> auth = new ConcurrentHashMap<>();
 
     @Autowired
-    StringRedisTemplate stringRedisTemplate;
+    RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     HttpClient httpClient;
@@ -68,12 +68,12 @@ public class WechatService {
         // 判断当前用户是否已在系统中
         User user;
         String openId = jsonRes.getString("openid");
-        if(!stringRedisTemplate.opsForSet().isMember("miniapp_user_openids", openId)) {
+        if(!redisTemplate.opsForSet().isMember("miniapp_user_openids", openId)) {
             // 保存新用户信息
             user = new User(openId, phoneNumber, nickName, sex, headImg, new Date());
             userService.saveUser(user);
 
-            stringRedisTemplate.opsForSet().add("miniapp_user_openids", openId);
+            redisTemplate.opsForSet().add("miniapp_user_openids", openId);
             log.info("新用户保存成功: " + JSON.toJSONString(user));
         }
 

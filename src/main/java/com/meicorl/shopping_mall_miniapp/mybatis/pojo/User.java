@@ -3,11 +3,12 @@ package com.meicorl.shopping_mall_miniapp.mybatis.pojo;
 import lombok.Data;
 import org.apache.ibatis.type.Alias;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @Data
 @Alias("User")
-public class User {
+public class User implements Serializable {
     private long id;
     private String openid;
     private String phone;
