@@ -15,6 +15,7 @@ public class Merchant implements Serializable {
     private String description;
     private String building;
     private int floor;
+    private float stars;  // 商户评价得分
 //    private String owner_name;
 //    private String phone;
 //    private String password;

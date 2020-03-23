@@ -6,11 +6,13 @@ import lombok.Data;
 import org.slf4j.MDC;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * description: 通用接口返回对象
  *
- * @author ：xushipeng
+ * @author ：caomei
  * @date ：2019/8/24 23:28
  */
 @Builder
@@ -19,7 +21,7 @@ import java.io.Serializable;
 public class Response<T> implements Serializable {
     private int retCode;
     private String retMsg;
-    private T content;
+    private Map<String, T> retData;
     private String requestId;
 
     public static Response ok() {
@@ -29,27 +31,20 @@ public class Response<T> implements Serializable {
                 .requestId(MDC.get("traceId"))
                 .build();
     }
-    public static <T> Response ok(T result) {
+    public static <T> Response ok(String key, T result) {
         return Response.builder()
                 .retCode(ResultConstant.SUCCEED_CODE)
                 .retMsg(ResultConstant.SUCCEED)
-                .content(result)
+                .retData(new HashMap<String, Object>(){{ put(key, result); }})
                 .requestId(MDC.get("traceId"))
                 .build();
     }
 
-    public static Response fail() {
+    public static Response ok(Map<String, Object> map) {
         return Response.builder()
-                .retCode(ResultConstant.FAILED_CODE)
-                .retMsg(ResultConstant.FAILED)
-                .requestId(MDC.get("traceId"))
-                .build();
-    }
-
-    public static Response fail(int code) {
-        return Response.builder()
-                .retCode(code)
-                .retMsg(ResultConstant.FAILED)
+                .retCode(ResultConstant.SUCCEED_CODE)
+                .retMsg(ResultConstant.SUCCEED)
+                .retData(map)
                 .requestId(MDC.get("traceId"))
                 .build();
     }
@@ -60,29 +55,5 @@ public class Response<T> implements Serializable {
                 .retMsg(msg)
                 .requestId(MDC.get("traceId"))
                 .build();
-    }
-
-    public static Response fail(int code, String msg) {
-        return Response.builder()
-                .retCode(code)
-                .retMsg(msg)
-                .requestId(MDC.get("traceId"))
-                .build();
-    }
-
-    public static <T> Response fail(String msg, T result) {
-        return Response.builder()
-                .retCode(ResultConstant.FAILED_CODE)
-                .retMsg(msg)
-                .requestId(MDC.get("traceId"))
-                .content(result).build();
-    }
-
-    public static <T> Response fail(int code, String msg, T result) {
-        return Response.builder().
-                retCode(code)
-                .retMsg(msg)
-                .requestId(MDC.get("traceId"))
-                .content(result).build();
     }
 }

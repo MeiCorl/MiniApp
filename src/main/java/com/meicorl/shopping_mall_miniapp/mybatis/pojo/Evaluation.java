@@ -18,4 +18,5 @@ public class Evaluation {
     private String creator_name;
     private String creator_openid;
     private Date create_time;
+    private int op_status;   // 用户标记yoghurt是否对该条评论有操作权限, 0: 没有   1: 有
 }

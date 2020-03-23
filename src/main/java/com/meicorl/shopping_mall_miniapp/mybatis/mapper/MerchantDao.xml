@@ -8,4 +8,11 @@
         from t_merchant_info
         where building = #{building} and floor = #{floor} and merchant_type = 1
     </select>
+    <select id="getMerchantEvaluations" resultType="com.meicorl.shopping_mall_miniapp.mybatis.pojo.Evaluation">
+        select * id, merchant_id, comment, create_time
+        from t_evalution_info
+        where merchant_id = #{merchant_id}
+        order by create_time desc
+        limit #{offset}, #{limit}
+    </select>
 </mapper>

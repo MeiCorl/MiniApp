@@ -51,7 +51,7 @@
     <!--指定最基础的日志输出级别-->
     <springProfile name="dev">
         <!--<include resource="org/springframework/boot/logging/logback/console-appender.xml" />-->
-        <root level="INFO">
+        <root level="DEBUG">
             <appender-ref ref="console" />
         </root>
     </springProfile>

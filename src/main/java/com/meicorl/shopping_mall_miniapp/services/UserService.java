@@ -25,9 +25,9 @@ public class UserService {
     }
 
     public User getUserByOpenId(String openId) {
-        String userInfo = (String) redisTemplate.opsForHash().get("miniapp_users", openId);
-        if(userInfo != null)
-            return JSONObject.parseObject(userInfo, User.class);
+        User user = (User) redisTemplate.opsForHash().get("miniapp_users", openId);
+        if(user != null)
+            return user;
         else
             return userDao.getUserByOpenId(openId);
     }
