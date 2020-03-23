@@ -9,10 +9,14 @@
         where building = #{building} and floor = #{floor} and merchant_type = 1
     </select>
     <select id="getMerchantEvaluations" resultType="com.meicorl.shopping_mall_miniapp.mybatis.pojo.Evaluation">
-        select * id, merchant_id, comment, create_time
+        select id, merchant_id, comment, creator_name, creator_openid, create_time
         from t_evalution_info
         where merchant_id = #{merchant_id}
         order by create_time desc
-        limit #{offset}, #{limit}
+        limit #{offset}, 10
+    </select>
+    <select id="getProductList" resultType="com.meicorl.shopping_mall_miniapp.mybatis.pojo.Product">
+        select * from t_product_info
+        where merchant_id = #{merchant_id} and status = 0
     </select>
 </mapper>

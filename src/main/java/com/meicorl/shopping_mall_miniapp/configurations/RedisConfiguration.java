@@ -18,6 +18,8 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 public class RedisConfiguration {
@@ -62,10 +64,20 @@ public class RedisConfiguration {
     @Bean
     public RedisCacheManager cacheManager(LettuceConnectionFactory lettuceConnectionFactory) {
         RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofHours(1));  // 设置Cache键过期时间
+                .entryTtl(Duration.ofHours(1))  // 设置Cache键过期时间
+                .computePrefixWith(cacheName -> "MyCache:" + cacheName);
+
+        // 针对不同cacheName，设置不同的过期时间
+        Map<String, RedisCacheConfiguration> initialCacheConfiguration = new HashMap<String, RedisCacheConfiguration>() {{
+            put("MerchantCache", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(1))); // 1小时
+            put("EvaluationCache", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(30))); // 30分钟
+            put("ProductCache", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10))); // 10分钟
+            // ...
+        }};
 
         return RedisCacheManager.builder(lettuceConnectionFactory)
-                .cacheDefaults(defaultCacheConfig)
+                .cacheDefaults(defaultCacheConfig)    // 动态创建出来的都会走此默认配置
+                .withInitialCacheConfigurations(initialCacheConfiguration)   // 不同cache的个性化配置
                 .build();
     }
 }

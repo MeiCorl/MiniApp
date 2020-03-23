@@ -3,6 +3,8 @@ package com.meicorl.shopping_mall_miniapp.services;
 import com.meicorl.shopping_mall_miniapp.mybatis.dao.MerchantDao;
 import com.meicorl.shopping_mall_miniapp.mybatis.pojo.Evaluation;
 import com.meicorl.shopping_mall_miniapp.mybatis.pojo.Merchant;
+import com.meicorl.shopping_mall_miniapp.mybatis.pojo.Product;
+import com.meicorl.shopping_mall_miniapp.utils.SessionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +30,7 @@ public class MerchantService {
      * @param floor 楼层
      * @return 商户列表
      */
-    @Cacheable(value = "MyCache", key = "'merchants_at_' + #building + '_' + #floor", unless = "#result.isEmpty()")
+    @Cacheable(value = "MerchantCache", key = "'merchants_at_' + #building + '_' + #floor", unless = "#result.isEmpty()")
     public ArrayList<Merchant> getMerchantsList(String building, int floor) {
         log.info("从数据库读取商户列表, build: {} floor: {}", building, floor);
         return merchantDao.getMerchants(building, floor);
@@ -59,12 +61,26 @@ public class MerchantService {
         }
     }
 
-    //@Cacheable(value = "MyCache", key = "'evaluations_of_' + #merchantId + '_page:' + #pageNo", unless = "#result.isEmpty()")
-    public ArrayList<Evaluation> getMerchantEvaluations(int merchantId, int pageNo, int pageSize) {
-        int offset = (pageNo - 1) * pageSize;
-        log.info("从数据库读取评价列表, mertchant: {} pageNo: {} pageSize: {}", merchantId, pageNo, pageSize);
-        ArrayList<Evaluation> evaluations = merchantDao.getMerchantEvaluations(merchantId, offset, pageSize);
+    @Cacheable(value = "EvaluationCache", key = "'evaluations_of_' + #merchantId + '_page:' + #pageNo", unless = "#result.isEmpty()")
+    public ArrayList<Evaluation> getMerchantEvaluations(int merchantId, int pageNo) {
+        int offset = (pageNo - 1) * 10;
+        log.info("从数据库读取评价列表, mertchant: {} pageNo: {}", merchantId, pageNo);
+        ArrayList<Evaluation> evaluations = merchantDao.getMerchantEvaluations(merchantId, offset);
 
+        // 更新当前用户对评价列表的操作权限
+        String curUserId = SessionUtil.getCurrentUserId();
+        if(curUserId != null) {
+            for(Evaluation evaluation : evaluations) {
+                if(evaluation.getCreator_openid().equals(curUserId))
+                    evaluation.setOp_status(1);
+            }
+        }
         return evaluations;
+    }
+
+    @Cacheable(value = "ProductCache", key = "'products_of_' + #merchantId", unless = "#result.isEmpty()")
+    public ArrayList<Product> getProductList(int merchantId) {
+        log.info("从数据库读取商品列表, mertchant: {}", merchantId);
+        return merchantDao.getProductList(merchantId);
     }
 }

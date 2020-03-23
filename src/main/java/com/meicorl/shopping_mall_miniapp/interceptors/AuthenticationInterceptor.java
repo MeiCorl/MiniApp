@@ -1,6 +1,6 @@
 package com.meicorl.shopping_mall_miniapp.interceptors;
 
-import com.meicorl.shopping_mall_miniapp.annotations.PassToken;
+import com.meicorl.shopping_mall_miniapp.annotations.RequireToken;
 import com.meicorl.shopping_mall_miniapp.common.Token;
 import com.meicorl.shopping_mall_miniapp.utils.SessionUtil;
 import com.meicorl.shopping_mall_miniapp.utils.TokenUtil;
@@ -15,34 +15,36 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 
+/**
+ * 登录鉴权拦截器
+ * RequireToken注解表示明确需要用户登录,没有token不放行，不带RequireToken则对token无要求，此时有token仍会解析
+ */
 public class AuthenticationInterceptor implements HandlerInterceptor {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationInterceptor.class);
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object object) throws Exception {
-        String strToken = request.getHeader("x-token"); // 从 http 请求头中取出 token
-        if (StringUtils.isEmpty(strToken))
-            return false;
-
         // 如果不是映射到方法直接通过
         if (!(object instanceof HandlerMethod))
             return true;
 
-        HandlerMethod handlerMethod = (HandlerMethod) object;
+        HandlerMethod handlerMethod = (HandlerMethod)object;
         Method method = handlerMethod.getMethod();
-        //检查是否有passtoken注释，有则跳过认证
-        if (method.isAnnotationPresent(PassToken.class)) {
-            logger.info("跳过token验证!");
-            return true;
-        }
-
         // 执行认证
+        boolean needToken = method.isAnnotationPresent(RequireToken.class);
+        String strToken = request.getHeader("x-token");
         Token token = new Token();
-        if(!TokenUtil.checkToken(strToken, token)) {
-            response.sendError(403, "token验证失败!");
-            return false;
+        if (StringUtils.isEmpty(strToken) || !TokenUtil.checkToken(strToken, token)) {
+            if(needToken) {
+                response.sendError(403, "用户未登录!");
+                return false;
+            }
+            else {
+                logger.info("跳过token验证!");
+                return true;
+            }
         }
-        //todo 将当前登录用户token存放在全局ThreadLocal对象中
+        // 将当前登录用户token存放在全局ThreadLocal对象中
         SessionUtil.setCurrentToken(token);
         logger.info("token验证成功!");
         return true;

@@ -17,4 +17,12 @@ public class SessionUtil {
     public static void removeCurrentToken() {
         threadLocal.remove();
     }
+
+    public static String getCurrentUserId() {
+        Token token = threadLocal.get();
+        if (token != null)
+            return token.getOpenid();
+        else
+            return null;
+    }
 }

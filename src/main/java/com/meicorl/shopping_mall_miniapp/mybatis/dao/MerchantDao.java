@@ -2,6 +2,7 @@ package com.meicorl.shopping_mall_miniapp.mybatis.dao;
 
 import com.meicorl.shopping_mall_miniapp.mybatis.pojo.Evaluation;
 import com.meicorl.shopping_mall_miniapp.mybatis.pojo.Merchant;
+import com.meicorl.shopping_mall_miniapp.mybatis.pojo.Product;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -13,6 +14,7 @@ public interface MerchantDao {
                                     @Param("floor") int floor);
 
     ArrayList<Evaluation> getMerchantEvaluations(@Param("merchant_id") int merchantId,
-                                                 @Param("offset") int offset,
-                                                 @Param("limit") int limit);
+                                                 @Param("offset") int offset);
+
+    ArrayList<Product> getProductList(@Param("merchant_id") int merchantId);
 }
