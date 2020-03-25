@@ -1,6 +1,7 @@
 package com.meicorl.shopping_mall_miniapp.mybatis.dao;
 
 
+import com.meicorl.shopping_mall_miniapp.mybatis.pojo.Evaluation;
 import com.meicorl.shopping_mall_miniapp.mybatis.pojo.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -9,4 +10,5 @@ import org.apache.ibatis.annotations.Param;
 public interface UserDao {
     int saveUser(User user);
     User getUserByOpenId(@Param("openid") String openId);
+    int addEvaluation(Evaluation evaluation);
 }

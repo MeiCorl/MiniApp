@@ -23,7 +23,7 @@ import java.util.Objects;
  **/
 @Aspect
 @Component
-@Profile({"dev", "sandbox", "test", "prod"})
+@Profile({"test", "prod"})
 public class FlowControllAspect {
     private static final String FLOW_CONTROLL_REDIS_KEY = "FlowControll#%s_%s@%s:%s";
 

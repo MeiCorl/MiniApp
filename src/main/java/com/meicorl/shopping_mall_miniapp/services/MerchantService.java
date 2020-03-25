@@ -7,13 +7,14 @@ import com.meicorl.shopping_mall_miniapp.mybatis.pojo.Product;
 import com.meicorl.shopping_mall_miniapp.utils.SessionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -46,21 +47,27 @@ public class MerchantService {
         ArrayList<Object> merchantIds = new ArrayList<>();
         for(Merchant merchant : merchants)
             merchantIds.add(String.valueOf(merchant.getId()));
-        List starList = redisTemplate.opsForHash().multiGet("evaluation_stars", merchantIds);
-        log.info("get scores: " + starList);
-        int i = 0;
-        for(Object star : starList) {
+        List<Object> starList = redisTemplate.opsForHash().multiGet("evaluation_stars", merchantIds);
+        List<Object> timeList = redisTemplate.opsForHash().multiGet("evaluation_times", merchantIds);
+//        int i = 0;
+        for(int i = 0; i < merchants.size(); i++) {
             Merchant merchant = merchants.get(i);
-            if(star != null) {
-                String[] arr = ((String)star).split("\\*");
-                merchant.setStars(Float.parseFloat(arr[0]) / Integer.parseInt(arr[1]));
+            Object stars = starList.get(i);
+            Object times = timeList.get(i);
+            if(stars != null && times != null) {
+                merchant.setStars(Float.parseFloat((String)stars) / Integer.parseInt((String)times));
             }
             else
                 merchant.setStars(4);
-            i++;
         }
     }
 
+    /**
+     * 分页拉取商户评价列表
+     * @param merchantId 商户id
+     * @param pageNo 当前页码
+     * @return 评价列表
+     */
     @Cacheable(value = "EvaluationCache", key = "'evaluations_of_' + #merchantId + '_page:' + #pageNo", unless = "#result.isEmpty()")
     public ArrayList<Evaluation> getMerchantEvaluations(int merchantId, int pageNo) {
         int offset = (pageNo - 1) * 10;
@@ -78,9 +85,19 @@ public class MerchantService {
         return evaluations;
     }
 
-    @Cacheable(value = "ProductCache", key = "'products_of_' + #merchantId", unless = "#result.isEmpty()")
+    /**
+     * 拉取商户下商品列表
+     * @param merchantId 商户id
+     * @return 商品列表
+     */
     public ArrayList<Product> getProductList(int merchantId) {
-        log.info("从数据库读取商品列表, mertchant: {}", merchantId);
-        return merchantDao.getProductList(merchantId);
+        Set<Object> productIds = Collections.singleton(redisTemplate.opsForSet().members(String.format("products_of_merchant_%d", merchantId)));
+        List<Object> products = redisTemplate.opsForHash().multiGet("products", productIds);
+        ArrayList<Product> productList = new ArrayList<>();
+        for(Object product_info : products)
+            productList.add((Product)product_info);
+//        log.info("从数据库读取商品列表, mertchant: {}", merchantId);
+//        return merchantDao.getProductList(merchantId);
+        return productList;
     }
 }

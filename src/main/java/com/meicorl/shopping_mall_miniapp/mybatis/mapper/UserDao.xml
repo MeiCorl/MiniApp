@@ -11,5 +11,9 @@
         select * from t_user_info
         where openid = #{openid}
     </select>
+    <insert id="addEvaluation" parameterType="com.meicorl.shopping_mall_miniapp.mybatis.pojo.Evaluation">
+        insert into t_evalution_info(merchant_id, comment, creator_name, creator_openid, create_time)
+        values (#{merchant_id}, #{comment}, #{creator_name}, #{creator_openid}, #{create_time})
+    </insert>
 
 </mapper>

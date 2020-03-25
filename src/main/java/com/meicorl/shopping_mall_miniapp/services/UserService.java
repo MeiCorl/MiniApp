@@ -1,13 +1,19 @@
 package com.meicorl.shopping_mall_miniapp.services;
 
-import com.alibaba.fastjson.JSONObject;
 import com.meicorl.shopping_mall_miniapp.common.GlobalException;
 import com.meicorl.shopping_mall_miniapp.mybatis.dao.UserDao;
+import com.meicorl.shopping_mall_miniapp.mybatis.pojo.Evaluation;
 import com.meicorl.shopping_mall_miniapp.mybatis.pojo.User;
+import com.meicorl.shopping_mall_miniapp.utils.SessionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
 
 @Service
 public class UserService {
@@ -24,11 +30,51 @@ public class UserService {
         redisTemplate.opsForHash().put("miniapp_users", user.getOpenid(), user);
     }
 
-    public User getUserByOpenId(String openId) {
+    private User getUserByOpenId(String openId) {
         User user = (User) redisTemplate.opsForHash().get("miniapp_users", openId);
         if(user != null)
             return user;
         else
             return userDao.getUserByOpenId(openId);
+    }
+
+    /**
+     * 获取当前登录用户id
+     * @return
+     */
+    public User getCurrentUser() {
+        String openId = SessionUtil.getCurrentUserId();
+        return getUserByOpenId(openId);
+    }
+
+    /**
+     * 为商户评分
+     * @param merchantId 商户id
+     * @param score 评分（0~5）
+     */
+    public void setScore(int merchantId, float score) {
+        if(score < 0 || score > 5)
+            throw new GlobalException("无效分数, 请选择分数：0~5分!");
+        redisTemplate.execute(new SessionCallback<Object>() {
+            @Override
+            public Object execute(RedisOperations redisOperations) throws DataAccessException {
+                redisOperations.opsForHash().increment("evaluation_stars", merchantId, score);
+                redisOperations.opsForHash().increment("evaluation_times", merchantId, 1);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * 为商户添加评论
+     * @param merchantId 商户id
+     * @param comment 评论内容
+     */
+    public void addEvaluation(int merchantId, String comment) {
+        // 获取用户信息
+        User user = getCurrentUser();
+        Evaluation evaluation = new Evaluation(merchantId, comment, user.getNick_name(), user.getOpenid(), new Date());
+        if(userDao.addEvaluation(evaluation) < 1)
+            throw new GlobalException("评论失败!");
     }
 }

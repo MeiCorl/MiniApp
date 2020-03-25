@@ -3,6 +3,7 @@ package com.meicorl.shopping_mall_miniapp.annotations;
 import java.lang.annotation.*;
 
 /**
+ * 接口限流注解
  * @author caomei
  * @date 2019/9/16
  **/
