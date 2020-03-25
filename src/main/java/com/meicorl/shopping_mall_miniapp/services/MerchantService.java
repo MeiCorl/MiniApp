@@ -11,10 +11,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -49,7 +46,6 @@ public class MerchantService {
             merchantIds.add(String.valueOf(merchant.getId()));
         List<Object> starList = redisTemplate.opsForHash().multiGet("evaluation_stars", merchantIds);
         List<Object> timeList = redisTemplate.opsForHash().multiGet("evaluation_times", merchantIds);
-//        int i = 0;
         for(int i = 0; i < merchants.size(); i++) {
             Merchant merchant = merchants.get(i);
             Object stars = starList.get(i);
@@ -91,8 +87,8 @@ public class MerchantService {
      * @return 商品列表
      */
     public ArrayList<Product> getProductList(int merchantId) {
-        Set<Object> productIds = Collections.singleton(redisTemplate.opsForSet().members(String.format("products_of_merchant_%d", merchantId)));
-        List<Object> products = redisTemplate.opsForHash().multiGet("products", productIds);
+        Set<String> productIds = redisTemplate.opsForSet().members(String.format("products_of_merchant_%d", merchantId));
+        List<String> products = redisTemplate.<String, String>opsForHash().multiGet("products", productIds);
         ArrayList<Product> productList = new ArrayList<>();
         for(Object product_info : products)
             productList.add((Product)product_info);

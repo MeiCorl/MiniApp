@@ -24,6 +24,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object object) throws Exception {
+        logger.info("开始token校验...");
         // 如果不是映射到方法直接通过
         if (!(object instanceof HandlerMethod))
             return true;

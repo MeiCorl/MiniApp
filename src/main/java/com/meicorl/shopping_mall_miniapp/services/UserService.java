@@ -58,8 +58,8 @@ public class UserService {
         redisTemplate.execute(new SessionCallback<Object>() {
             @Override
             public Object execute(RedisOperations redisOperations) throws DataAccessException {
-                redisOperations.opsForHash().increment("evaluation_stars", merchantId, score);
-                redisOperations.opsForHash().increment("evaluation_times", merchantId, 1);
+                redisOperations.opsForHash().increment("evaluation_stars", String.valueOf(merchantId), score);
+                redisOperations.opsForHash().increment("evaluation_times", String.valueOf(merchantId), 1);
                 return null;
             }
         });
@@ -73,7 +73,12 @@ public class UserService {
     public void addEvaluation(int merchantId, String comment) {
         // 获取用户信息
         User user = getCurrentUser();
-        Evaluation evaluation = new Evaluation(merchantId, comment, user.getNick_name(), user.getOpenid(), new Date());
+        Evaluation evaluation = new Evaluation();
+        evaluation.setMerchant_id(merchantId);
+        evaluation.setComment(comment);
+        evaluation.setCreator_name(user.getNick_name());
+        evaluation.setCreator_openid(user.getOpenid());
+        evaluation.setCreate_time(new Date());
         if(userDao.addEvaluation(evaluation) < 1)
             throw new GlobalException("评论失败!");
     }

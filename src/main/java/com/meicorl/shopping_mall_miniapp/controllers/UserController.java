@@ -19,25 +19,25 @@ public class UserController {
     @Autowired
     UserService userService;
 
-    @RequireToken
     @ApiOperation("拉取用户信息")
     @GetMapping(value = "/me")
+    @RequireToken
     public Response showMe() {
         User user = userService.getCurrentUser();
         return Response.ok("user_info", user);
     }
 
-    @RequireToken
     @ApiOperation("为商户打分")
     @PutMapping(value = "/set_score")
+    @RequireToken
     public Response setScore(int merchantId, float score) {
         userService.setScore(merchantId, score);
         return Response.ok();
     }
 
-    @RequireToken
     @ApiOperation("新增评论")
     @PutMapping(value = "/add_evaluation")
+    @RequireToken
     public Response addEvaluation(int merchantId, String conmment) {
         userService.addEvaluation(merchantId, conmment);
         return Response.ok();
