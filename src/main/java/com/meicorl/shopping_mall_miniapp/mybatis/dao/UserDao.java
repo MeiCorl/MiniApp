@@ -11,4 +11,8 @@ public interface UserDao {
     int saveUser(User user);
     User getUserByOpenId(@Param("openid") String openId);
     int addEvaluation(Evaluation evaluation);
+    int deleteEvaluation(@Param("id") long commentId,
+                         @Param("openid") String openId);
+    int addAddress(@Param("address") String address,
+                   @Param("id") long userId);
 }

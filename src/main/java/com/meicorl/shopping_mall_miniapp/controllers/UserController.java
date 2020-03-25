@@ -42,4 +42,19 @@ public class UserController {
         userService.addEvaluation(merchantId, conmment);
         return Response.ok();
     }
+
+    @ApiOperation("删除评论")
+    @PutMapping(value = "/delete_evaluation")
+    @RequireToken
+    public Response deleteEvaluation(long conmmentId) {
+        userService.deleteEvaluation(conmmentId);
+        return Response.ok();
+    }
+
+    @ApiOperation("添加收货地址")
+    @PutMapping(value = "/add_address")
+    public Response addAddress(String address) {
+        userService.addAddress(address);
+        return Response.ok();
+    }
 }

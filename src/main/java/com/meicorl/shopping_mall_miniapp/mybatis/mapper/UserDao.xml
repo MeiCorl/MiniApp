@@ -15,5 +15,13 @@
         insert into t_evalution_info(merchant_id, comment, creator_name, creator_openid, create_time)
         values (#{merchant_id}, #{comment}, #{creator_name}, #{creator_openid}, #{create_time})
     </insert>
-
+    <delete id="deleteEvaluation">
+        delete from t_evalution_info
+        where id = #{id} and creator_openid = #{openid}
+    </delete>
+    <update id="addAddress">
+        update t_user_info
+        set address_list = concat_ws(';', address_list, #{address})
+        where id = #{id}
+    </update>
 </mapper>
