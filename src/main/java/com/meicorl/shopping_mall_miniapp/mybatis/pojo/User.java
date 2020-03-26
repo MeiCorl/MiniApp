@@ -21,6 +21,20 @@ public class User implements Serializable {
     private float account_balance;
     private Date create_time;
 
+    public User(long id, String openid, String phone, String nick_name, String sex, String head_img, String address_list, int vip_level, int vip_score, float account_balance, Date create_time) {
+        this.id = id;
+        this.openid = openid;
+        this.phone = phone;
+        this.nick_name = nick_name;
+        this.sex = sex;
+        this.head_img = head_img;
+        this.address_list = address_list;
+        this.vip_level = vip_level;
+        this.vip_score = vip_score;
+        this.account_balance = account_balance;
+        this.create_time = create_time;
+    }
+
     public User(String openid, String phone, String nick_name, String sex, String head_img, Date create_time) {
         this.openid = openid;
         this.phone = phone;
@@ -29,5 +43,7 @@ public class User implements Serializable {
         this.head_img = head_img;
         this.create_time = create_time;
     }
+
+
 }
 

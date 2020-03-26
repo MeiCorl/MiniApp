@@ -2,9 +2,11 @@ package com.meicorl.shopping_mall_miniapp.services;
 
 import com.meicorl.shopping_mall_miniapp.common.GlobalException;
 import com.meicorl.shopping_mall_miniapp.mybatis.dao.UserDao;
+import com.meicorl.shopping_mall_miniapp.mybatis.pojo.Deal;
 import com.meicorl.shopping_mall_miniapp.mybatis.pojo.Evaluation;
 import com.meicorl.shopping_mall_miniapp.mybatis.pojo.User;
 import com.meicorl.shopping_mall_miniapp.utils.SessionUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -14,8 +16,10 @@ import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 
+@Slf4j
 @Service
 public class UserService {
     @Autowired
@@ -29,6 +33,7 @@ public class UserService {
         if(userDao.saveUser(user) < 1)
             throw new GlobalException("保存用户信息出错！");
         redisTemplate.opsForHash().put("miniapp_users", user.getOpenid(), user);
+        log.info("新增用户成功!");
     }
 
     private User getUserByOpenId(String openId) {
@@ -83,6 +88,7 @@ public class UserService {
         evaluation.setCreate_time(new Date());
         if(userDao.addEvaluation(evaluation) < 1)
             throw new GlobalException("评论失败!");
+        log.info("添加评论成功!");
     }
 
     /**
@@ -91,10 +97,11 @@ public class UserService {
      */
     public void deleteEvaluation(long commentId) {
         // 获取当前登录用户信息
-        User user = getCurrentUser();
+        String openId = SessionUtil.getCurrentUserId();
 
         // 仅能删除自己的评论
-        userDao.deleteEvaluation(commentId, user.getOpenid());
+        userDao.deleteEvaluation(commentId, openId);
+        log.info("删除评论成功!");
     }
 
     /**
@@ -107,5 +114,14 @@ public class UserService {
             throw new GlobalException("收货地址不能为空!");
         if(userDao.addAddress(address, user.getId()) < 1)
             throw new GlobalException("新增地址出错!");
+        log.info("新增地址成功!");
+    }
+
+    /**
+     * 查询我的订单列表
+     */
+    public ArrayList<Deal> getMyDeals() {
+        String openId = SessionUtil.getCurrentUserId();
+        return userDao.getMyDeals(openId);
     }
 }

@@ -12,11 +12,11 @@
         where openid = #{openid}
     </select>
     <insert id="addEvaluation" parameterType="com.meicorl.shopping_mall_miniapp.mybatis.pojo.Evaluation">
-        insert into t_evalution_info(merchant_id, comment, creator_name, creator_openid, create_time)
+        insert into t_evaluation_info(merchant_id, comment, creator_name, creator_openid, create_time)
         values (#{merchant_id}, #{comment}, #{creator_name}, #{creator_openid}, #{create_time})
     </insert>
     <delete id="deleteEvaluation">
-        delete from t_evalution_info
+        delete from t_evaluation_info
         where id = #{id} and creator_openid = #{openid}
     </delete>
     <update id="addAddress">
@@ -24,4 +24,9 @@
         set address_list = concat_ws(';', address_list, #{address})
         where id = #{id}
     </update>
+    <select id="getMyDeals" resultType="com.meicorl.shopping_mall_miniapp.mybatis.pojo.Deal">
+        select *
+        from t_deal_info
+        where creator_openid = #{openid}
+    </select>
 </mapper>

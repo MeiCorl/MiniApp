@@ -2,6 +2,7 @@ package com.meicorl.shopping_mall_miniapp.controllers;
 
 import com.meicorl.shopping_mall_miniapp.annotations.RequireToken;
 import com.meicorl.shopping_mall_miniapp.common.Response;
+import com.meicorl.shopping_mall_miniapp.mybatis.pojo.Deal;
 import com.meicorl.shopping_mall_miniapp.mybatis.pojo.User;
 import com.meicorl.shopping_mall_miniapp.services.UserService;
 import io.swagger.annotations.Api;
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping(value = "/user")
@@ -56,5 +59,12 @@ public class UserController {
     public Response addAddress(String address) {
         userService.addAddress(address);
         return Response.ok();
+    }
+
+    @ApiOperation("查询我的订单")
+    @GetMapping(value = "/my_deals")
+    public Response getMyDeals() {
+        ArrayList<Deal> deals = userService.getMyDeals();
+        return Response.ok("my_deals", deals);
     }
 }

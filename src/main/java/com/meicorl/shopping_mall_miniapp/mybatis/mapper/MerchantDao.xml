@@ -10,7 +10,7 @@
     </select>
     <select id="getMerchantEvaluations" resultType="com.meicorl.shopping_mall_miniapp.mybatis.pojo.Evaluation">
         select id, merchant_id, comment, creator_name, creator_openid, create_time
-        from t_evalution_info
+        from t_evaluation_info
         where merchant_id = #{merchant_id}
         order by create_time desc
         limit #{offset}, 10
