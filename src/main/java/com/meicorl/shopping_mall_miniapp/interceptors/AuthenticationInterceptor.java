@@ -16,8 +16,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 
 /**
- * 登录鉴权拦截器
+ * 鉴权拦截器,对于某些接口，需要用户登录才能放开访问权限
  * RequireToken注解表示明确需要用户登录,没有token不放行，不带RequireToken则对token无要求，此时有token仍会解析
+ * @author caomei
+ * @date 2020/03/26
  */
 public class AuthenticationInterceptor implements HandlerInterceptor {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationInterceptor.class);

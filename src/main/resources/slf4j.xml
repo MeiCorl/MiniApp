@@ -2,9 +2,9 @@
 
 <!-- 具体配置可参考这个博客 https://blog.csdn.net/inke88/article/details/75007649 -->
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
-    <property name="appname" value="wx_minapp"/>
     <!--<property name="logfile" value="d:\\tmp\\${appname}.log"/>-->
-    <property name="logfile" value="./log/${appname}.log"/>
+    <property name="logfile" value="./log/app.log"/>
+    <property name="msgfile" value="./log/msg.log"/>
 
     <contextName>${appname}</contextName>
     
@@ -12,7 +12,7 @@
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <!--展示格式 layout-->
         <layout class="ch.qos.logback.classic.PatternLayout">
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} %X# %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{0} %X# %msg%n</pattern>
         </layout>
     </appender>
 
@@ -27,14 +27,32 @@
             <!--<fileNamePattern>${logfile}.%d{yyyy-MM-dd}.%i</fileNamePattern>-->
             <fileNamePattern>${logfile}.%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
             <!--每个日志文件大小限制-->
-            <maxFileSize>1000MB</maxFileSize>
+            <maxFileSize>100MB</maxFileSize>
             <!--<maxFileSize>10000KB</maxFileSize>-->
             <!--只保留最近90天的日志-->
             <maxHistory>90</maxHistory>
         </rollingPolicy>
         <encoder>
             <charset>UTF-8</charset>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} %X＃ %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{0} %X＃ %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="messageFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${msgfile}</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--文件路径,定义了日志的切分方式——把每一天的日志归档到一个文件中,以防止日志填满整个磁盘空间-->
+            <!--<fileNamePattern>${logfile}.%d{yyyy-MM-dd}.%i</fileNamePattern>-->
+            <fileNamePattern>${msgfile}.%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+            <!--每个日志文件大小限制-->
+            <maxFileSize>100MB</maxFileSize>
+            <!--<maxFileSize>10000KB</maxFileSize>-->
+            <!--只保留最近90天的日志-->
+            <maxHistory>90</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{0}＃ %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -47,6 +65,11 @@
         <!-- 添加附加的appender,最多只能添加一个 -->
         <appender-ref ref="rollingFile"/>
     </appender>
+
+    <!-- WebSocket消息日志 -->
+    <logger name="com.meicorl.shopping_mall_miniapp.utils.MessageTraceUtil" additivity="false">
+        <appender-ref ref="messageFile" />
+    </logger>
 
     <!--指定最基础的日志输出级别-->
     <springProfile name="dev">
