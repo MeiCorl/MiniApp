@@ -68,6 +68,9 @@
 
     <!-- WebSocket消息日志 -->
     <logger name="com.meicorl.shopping_mall_miniapp.utils.MessageTraceUtil" additivity="false">
+        <springProfile name="dev">
+            <appender-ref ref="console" />
+        </springProfile>
         <appender-ref ref="messageFile" />
     </logger>
 

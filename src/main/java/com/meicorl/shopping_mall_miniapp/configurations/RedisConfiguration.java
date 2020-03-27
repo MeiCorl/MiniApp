@@ -4,6 +4,7 @@ package com.meicorl.shopping_mall_miniapp.configurations;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.meicorl.shopping_mall_miniapp.services.MessageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,9 +15,15 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.Topic;
+import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -33,6 +40,9 @@ public class RedisConfiguration {
     @Value("${spring.redis.password}")
     private String password;
 
+    @Value("${miniapp_listener_topic}")
+    private String redis_topic;
+
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(host, port);
@@ -42,11 +52,7 @@ public class RedisConfiguration {
     }
 
     @Bean
-    public RedisTemplate<String, Object> initRedisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
-        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(lettuceConnectionFactory);
-        redisTemplate.setKeySerializer(new StringRedisSerializer());
-
+    public Jackson2JsonRedisSerializer<Object> jackson2JsonSerializer() {
         // json转对象类, 不设置默认的会将json转成hashmap
         Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
         ObjectMapper om = new ObjectMapper();
@@ -54,6 +60,20 @@ public class RedisConfiguration {
         om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
         jackson2JsonRedisSerializer.setObjectMapper(om);
 
+        return jackson2JsonRedisSerializer;
+    }
+
+    @Bean
+    StringRedisTemplate stringRedisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
+        return new StringRedisTemplate(lettuceConnectionFactory);
+    }
+
+    @Bean
+    public RedisTemplate<String, Object> initRedisTemplate(LettuceConnectionFactory lettuceConnectionFactory,
+                                                           Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer) {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(lettuceConnectionFactory);
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
         RedisSerializer stringRedisSerializer = redisTemplate.getStringSerializer();
         redisTemplate.setKeySerializer(stringRedisSerializer);
         redisTemplate.setHashKeySerializer(stringRedisSerializer);
@@ -84,5 +104,34 @@ public class RedisConfiguration {
                 .cacheDefaults(defaultCacheConfig)    // 动态创建出来的都会走此默认配置
                 .withInitialCacheConfigurations(initialCacheConfiguration)   // 不同cache的个性化配置
                 .build();
+    }
+
+    @Bean
+    public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
+        ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+        taskScheduler.setPoolSize(10);
+        return taskScheduler;
+    }
+
+    @Bean
+    public RedisMessageListenerContainer container(LettuceConnectionFactory lettuceConnectionFactory,
+                                                   ThreadPoolTaskScheduler taskScheduler,
+                                                   MessageService messageService) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(lettuceConnectionFactory);
+
+        // 设置redis监听任务池，防止阻塞主线程
+        container.setTaskExecutor(taskScheduler);
+
+        // 订阅主题
+        Topic topic = new ChannelTopic(redis_topic);
+
+        // 添加消息监听器
+        MessageListenerAdapter messageListenerAdapter = new MessageListenerAdapter(messageService, "onMessage");
+        messageListenerAdapter.setSerializer(new StringRedisSerializer());
+        messageListenerAdapter.afterPropertiesSet();
+        container.addMessageListener(messageListenerAdapter, topic);
+
+        return container;
     }
 }
