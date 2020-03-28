@@ -2,6 +2,7 @@ package com.meicorl.shopping_mall_miniapp.utils;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Random;
 
 /**
  *  通用工具类
@@ -91,5 +92,20 @@ public class CommonUtil {
             result[i] = (byte) (high * 16 + low);
         }
         return result;
+    }
+
+    /**
+     * 生成指定位随机字符串
+     * @return 随机字符串
+     */
+    public static String getRandomString(int length){
+        String str="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        Random random=new Random();
+        StringBuilder sb=new StringBuilder(length);
+        for(int i = 0; i< length; i++){
+            int number=random.nextInt(62);
+            sb.append(str.charAt(number));
+        }
+        return sb.toString();
     }
 }

@@ -35,6 +35,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         Method method = handlerMethod.getMethod();
         // 执行认证
         boolean needToken = method.isAnnotationPresent(RequireToken.class);
+
         String strToken = request.getHeader("x-token");
         Token token = new Token();
         if (StringUtils.isEmpty(strToken) || !TokenUtil.checkToken(strToken, token)) {

@@ -1,25 +1,25 @@
 package com.meicorl.shopping_mall_miniapp.services;
 /**
- * WebSocket Server： 接收小程序客户端消息
+ * Message Server: 接收小程序客户端消息, 及商户后端消息
  * 这里采用传统的java websocket，未使用SpringBoot提供的websocket
  * @author caomei
  * @data 2020/03/26
  */
-
-import com.meicorl.shopping_mall_miniapp.annotations.RequireToken;
+import com.alibaba.fastjson.JSON;
+import com.meicorl.shopping_mall_miniapp.common.Message;
 import com.meicorl.shopping_mall_miniapp.utils.MessageTraceUtil;
+import com.meicorl.shopping_mall_miniapp.utils.SessionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.websocket.OnClose;
-import javax.websocket.OnMessage;
+import javax.websocket.*;
 
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -29,44 +29,125 @@ public class MessageService {
     String merchant_topic;
 
     @Autowired
-    StringRedisTemplate stringRedisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
-    // 记录当前在线用户数量
+    /** 记录当前在线用户数量 */
     private static AtomicInteger onlineCount = new AtomicInteger(0);
 
-    // 线程安全set， 存放当前每个连如客户端的WebSocketService对象
-    private static CopyOnWriteArraySet<MessageService> clients = new CopyOnWriteArraySet<>();
+    /** 记录当前每个连如客户端的sessionId与WebSocketService对象的对应关系 */
+    private static ConcurrentHashMap<String, MessageService> clients = new ConcurrentHashMap<>(20);
 
-    // 与某个客户端的连接会话
+    /** 记录当前登录用户userId（openId）与sessionId的对应关系（用于处理redis消息时根据用户id找到用户对应的sessionId） */
+    private static ConcurrentHashMap<String, String> userSessionMap = new ConcurrentHashMap<>(20);
+
+    /** 记录当前登录用户sessionId与userId（openId）的对应关系（用户连接断开时，根据连接sessionId找到对应的用户) */
+    private static ConcurrentHashMap<String, String> sessionUserMap = new ConcurrentHashMap<>(20);
+
+    /** 与某个客户端的连接会话 */
     private Session session;
 
+    /**
+     * 处理小程序用户webSocket连接请求
+     * @param session
+     */
     @OnOpen
-    @RequireToken
     public void onOpen(Session session) {
+        // 获取当前连接用户userId和sessionId
+        String userId= SessionUtil.getCurrentUserId();
+        String sessionId = session.getId();
+        assert userId != null;
+
         this.session = session;
-        clients.add(this);
+        clients.put(sessionId, this);
+        userSessionMap.put(userId, sessionId);
+        sessionUserMap.put(sessionId, userId);
         int numOfOnlineUser = onlineCount.getAndIncrement();
-        MessageTraceUtil.info("一个新用户上线, 当前在线用户数量: " + (numOfOnlineUser + 1));
+        MessageTraceUtil.info(String.format("用户%s已上线, sessionId=%s, 当前在线用户数量: %d, ", userId, sessionId, numOfOnlineUser + 1));
+
+        // 检查是否有发往该用户的离线消息
+        String offlineMessageKey = String.format("messages_for_%s", userId);
+        List<String> messages = stringRedisTemplate.opsForList().range(offlineMessageKey, 0, -1);
+        if(messages != null && messages.size() > 0) {
+            RemoteEndpoint.Basic remote = session.getBasicRemote();
+            for(String message : messages) {
+                try {
+                    remote.sendText(message);
+                } catch (IOException e) {
+                    MessageTraceUtil.error(String.format("离线消息发送失败: e.getMessage(), message: %s", message));
+                }
+            }
+            // 删除离线消息队列中已经发送的消息
+            stringRedisTemplate.opsForList().trim(offlineMessageKey, messages.size(), -1);
+            MessageTraceUtil.info("离线消息推送成功!");
+        }
     }
 
     @OnClose
-    public void onClose() {
-        clients.remove(this);
+    public void onClose(Session session) throws IOException {
+        String sessionId =session.getId();
+        String userId= sessionUserMap.get(sessionId);
+
+        clients.remove(sessionId);
+        sessionUserMap.remove(sessionId);
+        userSessionMap.remove(userId);
+
         int numOfOnlineUser = onlineCount.getAndDecrement();
-        MessageTraceUtil.info("一个新用户下线, 当前在线用户数量: " + (numOfOnlineUser - 1));
+        MessageTraceUtil.info(String.format("用户%s已下线, sessionId=%s, 当前在线用户数量: %d, ", userId, sessionId, numOfOnlineUser - 1));
+        session.close();
     }
 
-    @OnMessage
-    public void onMessage(String msg, Session session) {
-
+    @OnError
+    public void onError(Session session, Throwable throwable) {
+        try {
+            session.close();
+        } catch (IOException e) {
+            MessageTraceUtil.error("onError excepiton: " + e);
+        }
+        MessageTraceUtil.info("Throwable msg: " + throwable.getMessage());
     }
 
     /**
-     * 处理Redis订阅消息
-     * @param message
+     * 处理小程序发来的消息，发往商户管理后端redis订阅主题
+     * @param msg
+     * @param session
      */
-    public void onMessage(String message) {
-        MessageTraceUtil.info("收到一个新消息： " + message);
-        stringRedisTemplate.convertAndSend(merchant_topic, message);
+    @OnMessage
+    public void onMessage(String msg, Session session) {
+        Message message = JSON.parseObject(msg, Message.class);
+        MessageTraceUtil.info(String.format("收到一条来自%s的消息, 即将发往商户: %s, 消息内容如下: %s", message.getFrom(), message.getTo(), message.getBody()));
+        stringRedisTemplate.convertAndSend(merchant_topic, msg);
+    }
+
+    /**
+     * 处理Redis订阅消息, 发现小程序用户
+     * @param msg
+     */
+    public void receiveMessage(String msg) {
+        Message message = JSON.parseObject(msg, Message.class);
+        MessageTraceUtil.info(String.format("收到一条来自商户%s的消息, 即将发往用户: %s, 消息内容如下: %s", message.getFrom(), message.getTo(), message.getBody()));
+
+        // 检查小程序用户是否在线
+        String userId = message.getTo();
+        if(userSessionMap.containsKey(userId)) {
+            MessageService client = clients.get(userSessionMap.get(userId));
+            client.sendMessage(msg);
+        }
+        else {
+            // 将消息发往用户离线消息队列
+            String offlineMessageKey = String.format("messages_for_%s", userId);
+            stringRedisTemplate.opsForList().rightPush(offlineMessageKey, msg);
+        }
+    }
+
+    /**
+     * 发送消息到小程序客户端
+     * @param msg
+     */
+    private void sendMessage(String msg) {
+        try {
+            this.session.getBasicRemote().sendText(msg);
+        } catch (IOException e) {
+            MessageTraceUtil.error(String.format("消息发送失败: e.getMessage(), message: %s", msg));
+        }
     }
 }

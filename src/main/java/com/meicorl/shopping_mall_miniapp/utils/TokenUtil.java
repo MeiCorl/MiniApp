@@ -40,21 +40,6 @@ public class TokenUtil {
     }
 
     /**
-     * 生成指定位随机字符串
-     * @return 随机字符串
-     */
-    private static String getRandomString(int length){
-        String str="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        Random random=new Random();
-        StringBuilder sb=new StringBuilder(length);
-        for(int i = 0; i< length; i++){
-            int number=random.nextInt(62);
-            sb.append(str.charAt(number));
-        }
-        return sb.toString();
-    }
-
-    /**
      * 自定义加密字符串
      * @param str 待加密字符串
      * @return 加密字符串

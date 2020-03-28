@@ -13,6 +13,10 @@ public class MessageTraceUtil {
         logger.info(msg);
     }
 
+    public static void error(String errMsg) {
+        logger.error(errMsg);
+    }
+
     private static String getStackTrace(Throwable t) {
         try (StringWriter sw = new StringWriter(); PrintWriter pw = new PrintWriter(sw)) {
             t.printStackTrace(pw);

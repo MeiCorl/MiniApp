@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 @Slf4j
-@WebFilter(filterName = "traceFilter", urlPatterns = {"/*"})
+@WebFilter(filterName = "traceFilter", urlPatterns = {"/token/*", "/merchant/*", "/user/*", "/vip/*"})
 public class LogTraceFilter implements Filter {
 
     @Override

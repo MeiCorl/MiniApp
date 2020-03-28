@@ -127,7 +127,7 @@ public class RedisConfiguration {
         Topic topic = new ChannelTopic(redis_topic);
 
         // 添加消息监听器
-        MessageListenerAdapter messageListenerAdapter = new MessageListenerAdapter(messageService, "onMessage");
+        MessageListenerAdapter messageListenerAdapter = new MessageListenerAdapter(messageService, "receiveMessage");
         messageListenerAdapter.setSerializer(new StringRedisSerializer());
         messageListenerAdapter.afterPropertiesSet();
         container.addMessageListener(messageListenerAdapter, topic);
