@@ -8,10 +8,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
-import java.util.Random;
 
 public class TokenUtil {
     private static final Logger logger = LoggerFactory.getLogger(TokenUtil.class);
+    private static final String secret = "S9LYUl73fquXIRCosFHyVKY9HUKAlT7O";
+//    private static final String secret = CommonUtil.getRandomString(32);
+    static {
+        logger.info("Token 密钥初始化成功: " + secret);
+    }
 
     /**
      * 根据用户身份生成token
@@ -45,8 +49,7 @@ public class TokenUtil {
      * @return 加密字符串
      */
     private static String encodeString(String str) {
-        String password = "S9LYUl73fquXIRCosFHyVKY9HUKAlT7O";
-        char[] pwd = password.toCharArray();
+        char[] pwd = secret.toCharArray();
         int pwdLen = pwd.length;
 
         char[] strArray = str.toCharArray();

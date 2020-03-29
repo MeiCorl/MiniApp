@@ -9,8 +9,12 @@ import com.alibaba.fastjson.JSON;
 import com.meicorl.shopping_mall_miniapp.common.Message;
 import com.meicorl.shopping_mall_miniapp.utils.MessageTraceUtil;
 import com.meicorl.shopping_mall_miniapp.utils.SessionUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +31,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MessageService {
     @Value("${merchants_listener_topic}")
     String merchant_topic;
+
+    @Value("${merchants_message_queue}")
+    String merchants_message_queue;
+
+    @Value("${miniapp_message_queue}")
+    String miniapp_message_queue;
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
@@ -108,26 +118,47 @@ public class MessageService {
 
     /**
      * 处理小程序发来的消息，发往商户管理后端redis订阅主题
-     * @param msg
-     * @param session
+     * @param msg 消息内容
+     * @param session 当前会话session
      */
     @OnMessage
     public void onMessage(String msg, Session session) {
         Message message = JSON.parseObject(msg, Message.class);
-        MessageTraceUtil.info(String.format("收到一条来自%s的消息, 即将发往商户: %s, 消息内容如下: %s", message.getFrom(), message.getTo(), message.getBody()));
-        stringRedisTemplate.convertAndSend(merchant_topic, msg);
+        // 检查下消息中发送方和当前连接用户是否一致
+        String userId = sessionUserMap.get(session.getId());
+        if(!userId.equals(message.getFrom_id())) {
+            MessageTraceUtil.error(String.format("消息发送方与当前连接用户不一致, user_id: %s  from_id: %s", userId, message.getFrom_id()));
+            return;
+        }
+        stringRedisTemplate.execute(new SessionCallback<String>() {
+            @Override
+            public String execute(RedisOperations redisOperations) throws DataAccessException {
+                // 消息写入商户后端消费队列
+                redisOperations.opsForList().rightPush(merchants_message_queue, msg);
+                // 通知商户后端有新消息到达
+                redisOperations.convertAndSend(merchant_topic, "message");
+                return null;
+            }
+        });
+        MessageTraceUtil.info(String.format("收到一条来自%s的消息, 已发往商户: %s, 消息内容如下: %s", message.getFrom_id(), message.getTo_id(), message.getBody()));
     }
 
     /**
      * 处理Redis订阅消息, 发现小程序用户
-     * @param msg
+     * @param redisMsg
      */
-    public void receiveMessage(String msg) {
+    public void receiveMessage(String redisMsg) {
+        if(!redisMsg.equals("message"))
+            return;
+        // 从消费队列获取消息
+        String msg = stringRedisTemplate.opsForList().leftPop(miniapp_message_queue);
+        if(StringUtils.isEmpty(msg))
+            return;
         Message message = JSON.parseObject(msg, Message.class);
-        MessageTraceUtil.info(String.format("收到一条来自商户%s的消息, 即将发往用户: %s, 消息内容如下: %s", message.getFrom(), message.getTo(), message.getBody()));
+        MessageTraceUtil.info(String.format("收到一条来自商户%s的消息, 即将发往用户: %s, 消息内容如下: %s", message.getFrom_id(), message.getTo_id(), message.getBody()));
 
         // 检查小程序用户是否在线
-        String userId = message.getTo();
+        String userId = message.getTo_id();
         if(userSessionMap.containsKey(userId)) {
             MessageService client = clients.get(userSessionMap.get(userId));
             client.sendMessage(msg);
