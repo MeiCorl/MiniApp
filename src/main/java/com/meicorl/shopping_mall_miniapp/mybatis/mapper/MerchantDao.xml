@@ -19,4 +19,9 @@
         select * from t_product_info
         where merchant_id = #{merchant_id} and status = 0
     </select>
+    <select id="getProductsByTag" resultType="com.meicorl.shopping_mall_miniapp.mybatis.pojo.Product">
+        select *
+        from t_product_info
+        where product_tag = #{product_tag}
+    </select>
 </mapper>

@@ -17,4 +17,6 @@ public interface MerchantDao {
                                                  @Param("offset") int offset);
 
     ArrayList<Product> getProductList(@Param("merchant_id") int merchantId);
+
+    ArrayList<Product> getProductsByTag(@Param("product_tag") String productTag);
 }

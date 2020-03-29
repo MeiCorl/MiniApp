@@ -105,4 +105,9 @@ public class MerchantService {
 //        return merchantDao.getProductList(merchantId);
         return productList;
     }
+
+    @Cacheable(value = "ProductCache", key = "'products_of_tag:' + #productTag", unless = "#result.isEmpty()")
+    public ArrayList<Product> getProductListByTag(String productTag) {
+        return merchantDao.getProductsByTag(productTag);
+    }
 }

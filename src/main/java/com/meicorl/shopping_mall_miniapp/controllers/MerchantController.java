@@ -54,4 +54,18 @@ public class MerchantController {
         List<Product> products = merchantService.getProductList(merchantId);
         return Response.ok("product_list", products);
     }
+
+    @ApiOperation("拉取商品分类标签列表")
+    @GetMapping(value = "/get_product_tags")
+    public Response getProductTagList() {
+        String[] productTags = new String[] {"水果", "食品", "生鲜", "数码", "电器", "洗护", "男装", "女装", "鞋靴", "母婴", "保健", "医药", "百货", "其它"};
+        return Response.ok("product_tags", productTags);
+    }
+
+    @ApiOperation("根据商品标签拉取商品")
+    @GetMapping(value = "/get_products_by_tag")
+    public Response getProductListByTag(String productTag) {
+        List<Product> products = merchantService.getProductListByTag(productTag);
+        return Response.ok("product_list", products);
+    }
 }
