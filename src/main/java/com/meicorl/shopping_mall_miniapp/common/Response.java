@@ -19,40 +19,40 @@ import java.util.Map;
 @AllArgsConstructor
 @Data
 public class Response<T> implements Serializable {
-    private int retCode;
-    private String retMsg;
-    private Map<String, T> retData;
+    private int ret_code;
+    private String ret_msg;
+    private Map<String, T> ret_data;
     private String requestId;
 
     public static Response ok() {
         return Response.builder()
-                .retCode(ResultConstant.SUCCEED_CODE)
-                .retMsg(ResultConstant.SUCCEED)
+                .ret_code(ResultConstant.SUCCEED_CODE)
+                .ret_msg(ResultConstant.SUCCEED)
                 .requestId(MDC.get("traceId"))
                 .build();
     }
     public static <T> Response ok(String key, T result) {
         return Response.builder()
-                .retCode(ResultConstant.SUCCEED_CODE)
-                .retMsg(ResultConstant.SUCCEED)
-                .retData(new HashMap<String, Object>(){{ put(key, result); }})
+                .ret_code(ResultConstant.SUCCEED_CODE)
+                .ret_msg(ResultConstant.SUCCEED)
+                .ret_data(new HashMap<String, Object>(){{ put(key, result); }})
                 .requestId(MDC.get("traceId"))
                 .build();
     }
 
     public static Response ok(Map<String, Object> map) {
         return Response.builder()
-                .retCode(ResultConstant.SUCCEED_CODE)
-                .retMsg(ResultConstant.SUCCEED)
-                .retData(map)
+                .ret_code(ResultConstant.SUCCEED_CODE)
+                .ret_msg(ResultConstant.SUCCEED)
+                .ret_data(map)
                 .requestId(MDC.get("traceId"))
                 .build();
     }
 
     public static Response fail(String msg) {
         return Response.builder()
-                .retCode(ResultConstant.FAILED_CODE)
-                .retMsg(msg)
+                .ret_code(ResultConstant.FAILED_CODE)
+                .ret_msg(msg)
                 .requestId(MDC.get("traceId"))
                 .build();
     }

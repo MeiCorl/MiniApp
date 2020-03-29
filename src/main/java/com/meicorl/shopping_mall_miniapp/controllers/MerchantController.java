@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/merchant")
@@ -21,11 +21,18 @@ public class MerchantController {
     @Autowired
     MerchantService merchantService;
 
+    @ApiOperation("拉取广告位列表")
+    @GetMapping(value = "/advertisments")
+    public Response getAdvertismentList() {
+        List<String> adList = merchantService.getAdvertismentList();
+        return Response.ok("advertis_list", adList);
+    }
+
     @ApiOperation("拉取商户列表")
     @GetMapping(value = "/merchant_list")
     public Response getMerchantList(String building, Integer floor) {
         // 查询商户列表
-        ArrayList<Merchant> merchants = merchantService.getMerchantsList(building, floor);
+        List<Merchant> merchants = merchantService.getMerchantsList(building, floor);
 
         // 查询商户评价得分
         merchantService.getMerchantScores(merchants);
@@ -37,14 +44,14 @@ public class MerchantController {
     public Response getEvaluationList(int merchantId, int pageNo) {
         if(pageNo <= 0)
             return Response.fail("无效参数!");
-        ArrayList<Evaluation> evaluations = merchantService.getMerchantEvaluations(merchantId, pageNo);
+        List<Evaluation> evaluations = merchantService.getMerchantEvaluations(merchantId, pageNo);
         return Response.ok("evaluation_list", evaluations);
     }
 
     @ApiOperation("拉取商品列表")
     @GetMapping(value = "/product_list")
     public Response getProductList(int merchantId) {
-        ArrayList<Product> products = merchantService.getProductList(merchantId);
+        List<Product> products = merchantService.getProductList(merchantId);
         return Response.ok("product_list", products);
     }
 }

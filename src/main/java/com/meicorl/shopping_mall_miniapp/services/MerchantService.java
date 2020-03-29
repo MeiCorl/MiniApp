@@ -1,5 +1,6 @@
 package com.meicorl.shopping_mall_miniapp.services;
 
+import com.alibaba.fastjson.JSON;
 import com.meicorl.shopping_mall_miniapp.mybatis.dao.MerchantDao;
 import com.meicorl.shopping_mall_miniapp.mybatis.pojo.Evaluation;
 import com.meicorl.shopping_mall_miniapp.mybatis.pojo.Merchant;
@@ -23,6 +24,14 @@ public class MerchantService {
     RedisTemplate<String, String> redisTemplate;
 
     /**
+     * 拉取商城广告列表
+     * @return
+     */
+    public List<String> getAdvertismentList() {
+        return redisTemplate.opsForList().range("advertisments", 0, -1);
+    }
+
+    /**
      * 根据楼栋、楼层拉取商户列表
      * @param building 楼栋
      * @param floor 楼层
@@ -38,7 +47,7 @@ public class MerchantService {
      * 获取商户评价得分
      * @param merchants 商户列表
      */
-    public void getMerchantScores(ArrayList<Merchant> merchants) {
+    public void getMerchantScores(List<Merchant> merchants) {
         if(merchants.size() <= 0)
             return;
         ArrayList<Object> merchantIds = new ArrayList<>();
@@ -90,8 +99,8 @@ public class MerchantService {
         Set<String> productIds = redisTemplate.opsForSet().members(String.format("products_of_merchant_%d", merchantId));
         List<String> products = redisTemplate.<String, String>opsForHash().multiGet("products", productIds);
         ArrayList<Product> productList = new ArrayList<>();
-        for(Object product_info : products)
-            productList.add((Product)product_info);
+        for(String product_info : products)
+            productList.add(JSON.parseObject(product_info, Product.class));
 //        log.info("从数据库读取商品列表, mertchant: {}", merchantId);
 //        return merchantDao.getProductList(merchantId);
         return productList;
