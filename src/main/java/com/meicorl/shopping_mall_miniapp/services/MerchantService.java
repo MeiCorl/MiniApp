@@ -106,8 +106,15 @@ public class MerchantService {
         return productList;
     }
 
-    @Cacheable(value = "ProductCache", key = "'products_of_tag:' + #productTag", unless = "#result.isEmpty()")
-    public ArrayList<Product> getProductListByTag(String productTag) {
-        return merchantDao.getProductsByTag(productTag);
+    /**
+     * 根据商品分类标签拉取商品列表， 默认每页100个数据
+     * @param productTag
+     * @param pageNo
+     * @return
+     */
+    @Cacheable(value = "ProductCache", key = "'products_of_tag:' + #productTag + '_page:' + #pageNo", unless = "#result.isEmpty()")
+    public ArrayList<Product> getProductListByTag(String productTag, int pageNo) {
+        int offset = (pageNo - 1) * 100;
+        return merchantDao.getProductsByTag(productTag, offset);
     }
 }

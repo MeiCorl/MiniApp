@@ -22,6 +22,11 @@
     <select id="getProductsByTag" resultType="com.meicorl.shopping_mall_miniapp.mybatis.pojo.Product">
         select *
         from t_product_info
-        where product_tag = #{product_tag}
+        <where>
+            <if test="!product_tag.equals('ALL')">
+                product_tag = #{product_tag}
+            </if>
+        </where>
+        limit #{offset}, 100
     </select>
 </mapper>

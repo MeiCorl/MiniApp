@@ -64,8 +64,10 @@ public class MerchantController {
 
     @ApiOperation("根据商品标签拉取商品")
     @GetMapping(value = "/get_products_by_tag")
-    public Response getProductListByTag(String productTag) {
-        List<Product> products = merchantService.getProductListByTag(productTag);
+    public Response getProductListByTag(String productTag, int pageNo) {
+        if(pageNo < 0)
+            pageNo = 1;
+        List<Product> products = merchantService.getProductListByTag(productTag, pageNo);
         return Response.ok("product_list", products);
     }
 }
