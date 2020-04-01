@@ -97,6 +97,7 @@ public class RedisConfiguration {
             put("MerchantCache", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(1))); // 1小时
             put("EvaluationCache", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(30))); // 30分钟
             put("ProductCache", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10))); // 10分钟
+            put("ActivityCache", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5))); // 5分钟
             // ...
         }};
 

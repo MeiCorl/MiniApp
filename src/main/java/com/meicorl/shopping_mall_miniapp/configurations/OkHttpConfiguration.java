@@ -66,6 +66,6 @@ public class OkHttpConfiguration {
      */
     @Bean
     public ConnectionPool pool() {
-        return new ConnectionPool(100, 5, TimeUnit.MINUTES);
+        return new ConnectionPool(50, 5, TimeUnit.MINUTES);
     }
 }
