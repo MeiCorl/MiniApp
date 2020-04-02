@@ -1,16 +1,12 @@
 package com.meicorl.shopping_mall_miniapp.mybatis.pojo;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.ibatis.type.Alias;
 
 import java.io.Serializable;
 import java.util.Date;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Alias("Product")
 public class Product implements Serializable {
     private long id;
@@ -24,7 +20,14 @@ public class Product implements Serializable {
     private int init_stock;
     private int remain_stock;
     private float price;
+    private float discount_price;
     private int status;
     private Date create_time;
     private Date update_time;
+
+    public void setPrice(float price) {
+        this.price = price;
+        this.discount_price = price;
+    }
+
 }

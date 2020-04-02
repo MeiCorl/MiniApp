@@ -9,7 +9,10 @@ import com.meicorl.shopping_mall_miniapp.utils.SessionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -96,11 +99,19 @@ public class MerchantService {
      * @return 商品列表
      */
     public ArrayList<Product> getProductList(int merchantId) {
-        Set<String> productIds = redisTemplate.opsForSet().members(String.format("products_of_merchant_%d", merchantId));
-        List<String> products = redisTemplate.<String, String>opsForHash().multiGet("products", productIds);
         ArrayList<Product> productList = new ArrayList<>();
-        for(String product_info : products)
-            productList.add(JSON.parseObject(product_info, Product.class));
+        redisTemplate.execute(new SessionCallback<Object>() {
+            @Override
+            public <K, V> Object execute(RedisOperations<K, V> redisOperations) throws DataAccessException {
+
+                return null;
+            }
+        });
+//        Set<String> productIds = redisTemplate.opsForSet().members(String.format("products_of_merchant_%d", merchantId));
+//        List<String> products = redisTemplate.<String, String>opsForHash().multiGet("products", productIds);
+//        ArrayList<Product> productList = new ArrayList<>();
+//        for(String product_info : products)
+//            productList.add(JSON.parseObject(product_info, Product.class));
 //        log.info("从数据库读取商品列表, mertchant: {}", merchantId);
 //        return merchantDao.getProductList(merchantId);
         return productList;

@@ -12,7 +12,7 @@
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <!--展示格式 layout-->
         <layout class="ch.qos.logback.classic.PatternLayout">
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{0} %X# %msg%n</pattern>
+            <pattern>%d{HH:mm:ss} %-5level %logger{0} %X# %msg%n</pattern>
         </layout>
     </appender>
 

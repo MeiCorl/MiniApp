@@ -14,4 +14,5 @@ public class Activity implements Serializable {
     private Date end_time;
     private Date create_time;
     private Date update_time;
+    private int status; // 0: 活动尚未开始  1: 活动进行中
 }

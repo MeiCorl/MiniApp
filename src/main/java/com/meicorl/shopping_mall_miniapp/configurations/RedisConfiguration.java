@@ -25,6 +25,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,6 +59,7 @@ public class RedisConfiguration {
         ObjectMapper om = new ObjectMapper();
         om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
         om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        om.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
         jackson2JsonRedisSerializer.setObjectMapper(om);
 
         return jackson2JsonRedisSerializer;
