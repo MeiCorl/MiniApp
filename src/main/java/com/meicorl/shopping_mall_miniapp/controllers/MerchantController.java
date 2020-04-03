@@ -67,6 +67,8 @@ public class MerchantController {
     public Response getProductListByTag(String productTag, int pageNo) {
         if(pageNo < 0)
             pageNo = 1;
+        if(productTag == null)
+            productTag = "ALL";
         List<Product> products = merchantService.getProductListByTag(productTag, pageNo);
         return Response.ok("product_list", products);
     }

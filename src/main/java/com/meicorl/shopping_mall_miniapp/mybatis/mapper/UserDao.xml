@@ -10,6 +10,7 @@
     <select id="getUserByOpenId" resultType="com.meicorl.shopping_mall_miniapp.mybatis.pojo.User">
         select * from t_user_info
         where openid = #{openid}
+        limit 1
     </select>
     <insert id="addEvaluation" parameterType="com.meicorl.shopping_mall_miniapp.mybatis.pojo.Evaluation">
         insert into t_evaluation_info(merchant_id, comment, creator_name, creator_openid, create_time)
@@ -18,6 +19,7 @@
     <delete id="deleteEvaluation">
         delete from t_evaluation_info
         where id = #{id} and creator_openid = #{openid}
+        limit 1
     </delete>
     <update id="addAddress">
         update t_user_info
