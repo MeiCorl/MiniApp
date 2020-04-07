@@ -16,7 +16,7 @@ public final class SpringUtil implements BeanFactoryPostProcessor {
         SpringUtil.beanFactory = beanFactory;
     }
 
-    public static ConfigurableListableBeanFactory getBeanFactory() {
+    private static ConfigurableListableBeanFactory getBeanFactory() {
         return beanFactory;
     }
 
