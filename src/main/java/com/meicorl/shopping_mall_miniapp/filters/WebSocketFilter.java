@@ -29,7 +29,7 @@ public class WebSocketFilter implements Filter{
             /*
              * 熟悉的陌生人，就此止步吧!
              */
-            MessageTraceUtil.error("非法链接!");
+//            MessageTraceUtil.error("非法链接!");
 //            response.sendError(403, "请先登录!");
 //            return;
             // 以下为测试

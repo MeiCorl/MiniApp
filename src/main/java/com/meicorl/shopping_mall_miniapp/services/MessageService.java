@@ -7,10 +7,10 @@ package com.meicorl.shopping_mall_miniapp.services;
  */
 import com.alibaba.fastjson.JSON;
 import com.meicorl.shopping_mall_miniapp.common.Message;
+import com.meicorl.shopping_mall_miniapp.components.SpringUtil;
 import com.meicorl.shopping_mall_miniapp.utils.MessageTraceUtil;
 import com.meicorl.shopping_mall_miniapp.utils.SessionUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisOperations;
@@ -38,8 +38,14 @@ public class MessageService {
     @Value("${miniapp_message_queue}")
     String miniapp_message_queue;
 
-    @Autowired
-    private StringRedisTemplate stringRedisTemplate;
+    /**
+     * 敲黑板: 有坑!!! @ServerEndpoint不支持注入，所以使用SpringUtils获取IOC实例
+     * 参考解释: websocket是多对象的，每个用户的聊天客户端对应 java 后台的一个 websocket 对象，前后台一对一（多对多）实时连接，
+     * 所以 websocket 不可能像 servlet 一样做成单例的，让所有聊天用户连接到一个 websocket对象，这样无法保存所有用户的实时连接信息。
+     * 可能 spring 开发者考虑到这个问题，没有让 spring 创建管理 websocket ，而是由 java 原来的机制管理websocket ，
+     * 所以用户聊天时创建的 websocket 连接对象不是 spring 创建的，spring 也不会为不是他创建的对象进行依赖注入
+     */
+    private static StringRedisTemplate stringRedisTemplate = SpringUtil.getBean(StringRedisTemplate.class);
 
     /** 记录当前在线用户数量 */
     private static AtomicInteger onlineCount = new AtomicInteger(0);
@@ -72,7 +78,7 @@ public class MessageService {
         userSessionMap.put(userId, sessionId);
         sessionUserMap.put(sessionId, userId);
         int numOfOnlineUser = onlineCount.getAndIncrement();
-        MessageTraceUtil.info(String.format("用户%s已上线, sessionId=%s, 当前在线用户数量: %d, ", userId, sessionId, numOfOnlineUser + 1));
+        MessageTraceUtil.info(String.format("用户%s已上线, sessionId=%s, 当前在线用户数量: %d", userId, sessionId, numOfOnlineUser + 1));
 
         // 检查是否有发往该用户的离线消息
         String offlineMessageKey = String.format("messages_for_%s", userId);
@@ -102,18 +108,26 @@ public class MessageService {
         userSessionMap.remove(userId);
 
         int numOfOnlineUser = onlineCount.getAndDecrement();
-        MessageTraceUtil.info(String.format("用户%s已下线, sessionId=%s, 当前在线用户数量: %d, ", userId, sessionId, numOfOnlineUser - 1));
+        MessageTraceUtil.info(String.format("用户%s已下线, sessionId=%s, 当前在线用户数量: %d", userId, sessionId, numOfOnlineUser - 1));
         session.close();
     }
 
     @OnError
     public void onError(Session session, Throwable throwable) {
+    	MessageTraceUtil.info("Throwable msg: " + throwable.getMessage());
+    	
+        String sessionId =session.getId();
+        String userId= sessionUserMap.get(sessionId);
+
+        clients.remove(sessionId);
+        sessionUserMap.remove(sessionId);
+        userSessionMap.remove(userId);
+
         try {
             session.close();
         } catch (IOException e) {
             MessageTraceUtil.error("onError excepiton: " + e);
         }
-        MessageTraceUtil.info("Throwable msg: " + throwable.getMessage());
     }
 
     /**

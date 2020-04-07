@@ -15,5 +15,4 @@ public class ShoppingMallMiniappApplication {
     public static void main(String[] args) {
         SpringApplication.run(ShoppingMallMiniappApplication.class, args);
     }
-
 }

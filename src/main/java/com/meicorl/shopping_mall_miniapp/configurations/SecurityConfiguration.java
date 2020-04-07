@@ -1,6 +1,5 @@
 package com.meicorl.shopping_mall_miniapp.configurations;
 
-import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -17,7 +16,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         auth.inMemoryAuthentication()
                 .passwordEncoder(passwordEncoder)
                 .withUser("meicorl")
-                .password("$2a$10$zSt3bx8MseiR.OADxLjtx.4IUW8eJNC9Wd3Rz628QLuhI741N3ITy")
+                .password("$2a$10$SgEy7ClVQmfbIgNbI6M3LON3dxMrS6cUBWLhlBVxrtkcDrbQem8.6")
                 .roles("USER", "ADMIN")
                 .and()
                 .withUser("myuser")
@@ -27,9 +26,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        String[] endPoints = {"auditevents", "beans", "conditions", "configroups", "env", "flyway", "httptrace", "loggers", "liquibase", "metrics", "mappings", "scheduledtasks", "sessions", "shutdown", "threaddump"};
-        http.requestMatcher(EndpointRequest.to(endPoints))
-                .authorizeRequests().anyRequest()
+//        String[] endPoints = {"auditevents", "beans", "conditions", "configroups", "env", "flyway", "httptrace", "loggers", "liquibase", "metrics", "mappings", "scheduledtasks", "sessions", "shutdown", "threaddump"};
+        http.authorizeRequests()
+                // 任何请求都需要通过登录验证
+//                .anyRequest().authenticated()
+                .antMatchers("/actuator/**")
                 .hasRole("ADMIN")
                 .and()
                 .antMatcher("/close").authorizeRequests().anyRequest().hasRole("ADMIN")
