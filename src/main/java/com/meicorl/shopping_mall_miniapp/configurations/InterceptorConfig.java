@@ -15,7 +15,8 @@ public class InterceptorConfig implements WebMvcConfigurer {
                 .addPathPatterns("/merchant/*")
                 .addPathPatterns("/user/*")
                 .addPathPatterns("/vip/*")
-                .addPathPatterns("/activity/*");
+                .addPathPatterns("/activity/*")
+                .addPathPatterns("/deal/**");
     }
     @Bean
     public AuthenticationInterceptor authenticationInterceptor() {
