@@ -102,16 +102,15 @@ public class MerchantService {
         ArrayList<Product> productList = new ArrayList<>();
         redisTemplate.execute(new SessionCallback<Object>() {
             @Override
-            public <K, V> Object execute(RedisOperations<K, V> redisOperations) throws DataAccessException {
+            public Object execute(RedisOperations redisOperations) throws DataAccessException {
+                Set<String> productIds = redisOperations.opsForSet().members(String.format("products_of_merchant_%d", merchantId));
+                List<String> products = redisOperations.<String, String>opsForHash().multiGet("products", productIds);
 
+                for(String product_info : products)
+                    productList.add(JSON.parseObject(product_info, Product.class));
                 return null;
             }
         });
-//        Set<String> productIds = redisTemplate.opsForSet().members(String.format("products_of_merchant_%d", merchantId));
-//        List<String> products = redisTemplate.<String, String>opsForHash().multiGet("products", productIds);
-//        ArrayList<Product> productList = new ArrayList<>();
-//        for(String product_info : products)
-//            productList.add(JSON.parseObject(product_info, Product.class));
 //        log.info("从数据库读取商品列表, mertchant: {}", merchantId);
 //        return merchantDao.getProductList(merchantId);
         return productList;

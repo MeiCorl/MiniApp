@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(value = "/deal")
 @Api(tags = "订单相关接口")
@@ -18,11 +20,11 @@ public class DealController {
     @Autowired
     DealService dealService;
 
-    @ApiOperation("拉取当前未结束的限时特价活动列表")
+    @ApiOperation("下单接口")
     @PostMapping(value = "/generate_deals")
     @RequireToken
     public Response generateDeals(DealRequestModel dealRequestModel) {
-
+        List<DealRequestModel.DealProduct> productList = dealRequestModel.getProduct_list();
         return Response.ok();
     }
 }

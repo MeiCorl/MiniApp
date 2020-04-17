@@ -13,7 +13,7 @@ public class DealRequestModel {
     private List<DealProduct> product_list;
 
     @Data
-    static class DealProduct {
+    public static class DealProduct {
         int id;
         int amount;
     }

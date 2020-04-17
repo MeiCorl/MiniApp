@@ -1,6 +1,7 @@
 package com.meicorl.shopping_mall_miniapp.aspects;
 
 import com.alibaba.fastjson.JSONObject;
+import com.meicorl.shopping_mall_miniapp.utils.IpUtil;
 import io.swagger.annotations.ApiOperation;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -47,7 +48,7 @@ public class WebLogAspect {
         String methodDescription = getAspectLogDescription(joinPoint);
 
         // 打印请求相关参数
-        logger.info("=============================== Start ===============================");
+        logger.info("============================ Start ============================");
         // 打印请求 url
         logger.info("Target URL     : {}", request.getRequestURL().toString());
         // 打印描述信息
@@ -57,7 +58,7 @@ public class WebLogAspect {
         // 打印调用 controller 的全路径以及执行方法
         logger.info("Handler Method : {}.{}", joinPoint.getSignature().getDeclaringTypeName(), joinPoint.getSignature().getName());
         // 打印请求的 IP
-        logger.info("Remote IP      : {}", request.getRemoteAddr());
+        logger.info("Remote IP      : {}", IpUtil.getIpAddr(request));
         // 打印请求入参
         logger.info("Request Args   : {}", JSONObject.toJSONString(joinPoint.getArgs()));
     }
@@ -85,7 +86,7 @@ public class WebLogAspect {
     @After("webLog()")
     public void doAfter() {
         // 接口结束后换行，方便分割查看
-        logger.info("================================ End ================================" + LINE_SEPARATOR);
+        logger.info("============================= End =============================" + LINE_SEPARATOR);
     }
 
     /**
