@@ -22,21 +22,22 @@ public class Response<T> implements Serializable {
     private int ret_code;
     private String ret_msg;
     private Map<String, T> ret_data;
-    private String requestId;
+    private String request_id;
 
     public static Response ok() {
         return Response.builder()
                 .ret_code(ResultConstant.SUCCEED_CODE)
                 .ret_msg(ResultConstant.SUCCEED)
-                .requestId(MDC.get("traceId"))
+                .request_id(MDC.get("traceId"))
                 .build();
     }
+
     public static <T> Response ok(String key, T result) {
         return Response.builder()
                 .ret_code(ResultConstant.SUCCEED_CODE)
                 .ret_msg(ResultConstant.SUCCEED)
                 .ret_data(new HashMap<String, Object>(){{ put(key, result); }})
-                .requestId(MDC.get("traceId"))
+                .request_id(MDC.get("traceId"))
                 .build();
     }
 
@@ -45,7 +46,7 @@ public class Response<T> implements Serializable {
                 .ret_code(ResultConstant.SUCCEED_CODE)
                 .ret_msg(ResultConstant.SUCCEED)
                 .ret_data(map)
-                .requestId(MDC.get("traceId"))
+                .request_id(MDC.get("traceId"))
                 .build();
     }
 
@@ -53,7 +54,7 @@ public class Response<T> implements Serializable {
         return Response.builder()
                 .ret_code(ResultConstant.FAILED_CODE)
                 .ret_msg(msg)
-                .requestId(MDC.get("traceId"))
+                .request_id(MDC.get("traceId"))
                 .build();
     }
 }
